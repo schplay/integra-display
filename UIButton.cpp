@@ -1,39 +1,26 @@
 #include "UIButton.h"
 
-UIButton::UIButton(int x, int y, int w, int h, const char* label, std::function<void()> onClick)
-    : x(x), y(y), w(w), h(h), label(label), onClick(onClick) {}
+UIButton::UIButton(int x, int y, int width, int height, const char* label, bool centerText, std::function<void()> callback)
+    : x(x), y(y), width(width), height(height), label(label), centerText(centerText), callback(callback) {}
 
-void UIButton::draw(Arduino_Canvas* canvas) {
-    // Draw button background
-    canvas->fillRoundRect(x, y, w, h, 8, bgColor);
-
-    // Draw button border
-    canvas->drawRoundRect(x, y, w, h, 8, borderColor);
-
-    // Set text properties
-    canvas->setTextColor(textColor);
-    canvas->setTextSize(1);  // You can scale this up if needed
-
-    // Center the label
-    int16_t x1, y1;
-    uint16_t centerW, centerH;
-    canvas->getTextBounds(label, 0, 0, &x1, &y1, &centerW, &centerH);
-
-    int16_t textX = x + (w - centerW) / 2;
-    int16_t textY = y + (h - centerH) / 2;
-
-    canvas->setCursor(textX, textY);
-    canvas->print(label);
-}
-
-bool UIButton::handleTouch(int tx, int ty) {
-    if (tx >= x && tx <= x + w && ty >= y && ty <= y + h) {
-        if (onClick) onClick();  // Trigger the onClick callback when the button is pressed
-        return true;
+void UIButton::draw(TFT_eSPI& tft) {
+    tft.fillRect(x, y, width, height, TFT_BLUE);
+    tft.setTextColor(TFT_WHITE);
+    if (centerText) {
+        tft.setTextDatum(MC_DATUM); // Middle center datum
+        tft.drawString(label, x + width / 2, y + height / 2);
+    } else {
+        tft.setTextDatum(TL_DATUM); // Top left datum
+        tft.drawString(label, x + 10, y + 10);
     }
-    return false;
 }
 
-const char* UIButton::getLabel() const {
-    return label;
+bool UIButton::checkTouch(int xTouch, int yTouch) {
+    return xTouch >= x && xTouch <= x + width && yTouch >= y && yTouch <= y + height;
+}
+
+void UIButton::executeCallback() {
+    if (callback) {
+        callback();
+    }
 }

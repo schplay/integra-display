@@ -1,6 +1,35 @@
 #include "UIScreen.h"
 #include <math.h>
 
+void UIScreen::handleTouch(int x, int y) {
+    for (auto& group : groups) {
+        if (!group.visible) continue;
+        for (auto& button : group.buttons) {
+            if (button.checkTouch(x, y)) {
+                button.executeCallback();
+            }
+        }
+    }
+    for (auto& button : buttons) {
+        if (button.checkTouch(x, y)) {
+            button.executeCallback();
+        }
+    }
+}
+
+void UIScreen::addButtonToGroup(int groupId, UIButton button) {
+    if (groupId >= groups.size()) {
+        groups.resize(groupId + 1, {std::vector<UIButton>(), true});
+    }
+    groups[groupId].buttons.push_back(button);
+}
+
+void UIScreen::setGroupVisibility(int groupId, bool visible) {
+    if (groupId < groups.size()) {
+        groups[groupId].visible = visible;
+    }
+}
+
 void UIScreen::rotateAndBlit(Arduino_Canvas* canvas, Arduino_RGB_Display* gfx, float degrees) {
     // Only rotate if needed
     if (degrees == 0.0f) {

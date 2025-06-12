@@ -6,7 +6,7 @@
 class AffirmationScreen : public UIScreen {
 public:
     AffirmationScreen(UIManager* uiManager);
-    void begin() override;
+    // void begin() override;
     void draw(Arduino_Canvas* canvas) override;
     void handleTouch(int x, int y) override;
 
