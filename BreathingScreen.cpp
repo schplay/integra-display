@@ -1,53 +1,95 @@
+// BreathingScreen.cpp
 #include "BreathingScreen.h"
-#include "MainScreen.h"
-#include <FS.h>
-#include <FFat.h>
+#include "UIManager.h"
+#include "UIButton.h"
+#include "UILabel.h"
+#include "assets/back_button.h"
 
-// #include "assets/breathing_background.h"
-
-BreathingScreen::BreathingScreen(UIManager* uiManager) : ui(uiManager) {}
+// Group IDs
+#define GROUP_BREATHING_MAIN       0
+#define GROUP_BREATHING_INSTRUCTION_1 1
+#define GROUP_BREATHING_INSTRUCTION_2 2
+#define GROUP_BREATHING_COMPLETE   3
 
 void BreathingScreen::begin() {
-    // Initialize buttons or other UI elements for this screen
-    
+    elements.clear();
+    buttons.clear();
+    groups.clear();
+
+    auto* back = new UIButton(20, 20, 60, 60, back_button);
+    back->setCallback([this]() {
+        manager.changeScreen(ScreenID::Main);
+    });
+    elements.push_back(back);
+    buttons.push_back(back);
+
+    // Group: BREATHING_MAIN (Figma frame "Breathing Techniques")
+    auto* title = new UILabel(40, 40, 400, 40, "Breathing Techniques");
+    title->setFont("Roboto-Bold", 28);
+    title->setTextColor(0xFFFF);
+
+    auto* subtitle = new UILabel(40, 90, 400, 30, "Focus on your breath");
+    subtitle->setFont("Roboto-Regular", 22);
+    subtitle->setTextColor(0xCCCC);
+
+    groups[GROUP_BREATHING_MAIN] = { title, subtitle };
+    elements.push_back(title);
+    elements.push_back(subtitle);
+
+    // Group: BREATHING_INSTRUCTION_1 (Figma frame "Breathing Techniques - 1")
+    auto* instr1 = new UILabel(30, 50, 420, 200,
+        "Inhale deeply through your nose.\n\nHold for a few seconds.");
+    instr1->setFont("Roboto-Regular", 20);
+    instr1->setTextColor(0xFFFF);
+
+    groups[GROUP_BREATHING_INSTRUCTION_1] = { instr1 };
+    elements.push_back(instr1);
+
+    // Group: BREATHING_INSTRUCTION_2 (Figma frame "Breathing Techniques - 2")
+    auto* instr2 = new UILabel(30, 50, 420, 200,
+        "Exhale slowly through your mouth.\n\nRepeat for 5 minutes.");
+    instr2->setFont("Roboto-Regular", 20);
+    instr2->setTextColor(0xFFFF);
+
+    groups[GROUP_BREATHING_INSTRUCTION_2] = { instr2 };
+    elements.push_back(instr2);
+
+    // Group: BREATHING_COMPLETE (Figma frame "Breathing Techniques - Complete")
+    auto* done = new UILabel(30, 50, 420, 200,
+        "You’ve completed the Breathing Techniques.\n\nFeel more centered.");
+    done->setFont("Roboto-Regular", 20);
+    done->setTextColor(0xFFFF);
+
+    groups[GROUP_BREATHING_COMPLETE] = { done };
+    elements.push_back(done);
+
+    hideAllGroups();
+    showGroup(GROUP_BREATHING_MAIN);
 }
 
-void BreathingScreen::draw(Arduino_Canvas* canvas) {
-    canvas->fillScreen(BLACK);
+void BreathingScreen::draw() {
+    auto* canvas = manager.getCanvas();
+    canvas->fillScreen(0x0000);
+    for (auto* el : elements) el->draw(canvas);
+    canvas->flush();
+}
 
-    // Draw the background for the Breathing Techniques screen
-    // canvas->draw16bitRGBBitmap(0, 0, breathing_background, 480, 480);
-    File file = FFat.open("/assets/background.rgb565", "r");
-    if (!file) {
-        Serial.println("Failed to open background.rgb565");
-        return;
+bool BreathingScreen::handleTouch(int16_t tx, int16_t ty) {
+    for (auto* btn : buttons) {
+        if (btn->handleTouch(tx, ty)) return true;
     }
+    return false;
+}
 
-    const int width = 480;
-    const int height = 480;
-    uint8_t buffer[480 * 2]; // 480 pixels * 2 bytes (1 row)
-
-    for (int y = 0; y < height; y++) {
-        file.read(buffer, sizeof(buffer));
-        canvas->draw16bitRGBBitmap(0, y, (uint16_t*)buffer, width, 1);
-    }
-
-    file.close();
-
-    // Draw any additional UI elements like buttons, text, etc.
-    for (auto& button : buttons) {
-        button.draw(canvas);
+void BreathingScreen::hideAllGroups() {
+    for (auto& [id, groupElems] : groups) {
+        for (auto* el : groupElems) el->setVisible(false);
     }
 }
 
-void BreathingScreen::handleTouch(int x, int y) {
-    for (auto& button : buttons) {
-        if (button.handleTouch(x, y)) {
-            // Handle the button press and navigate back to the Main screen
-            if (button.getLabel() == "Back") {
-                ui->setScreen(new MainScreen(ui));  // Transition back to Main screen
-            }
-        }
+void BreathingScreen::showGroup(int groupId) {
+    hideAllGroups();
+    if (groups.count(groupId)) {
+        for (auto* el : groups[groupId]) el->setVisible(true);
     }
 }
-

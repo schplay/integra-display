@@ -1,16 +1,20 @@
 #pragma once
-#include "UIScreen.h"
-#include "UIButton.h"
-#include "UIManager.h"
 
-class MoreScreen : public UIScreen {
+#include "UIScreen.h"
+#include <vector>
+#include <map>
+
+class MoreScreen : public Screen {
 public:
-    MoreScreen(UIManager* uiManager);
     void begin() override;
-    void draw(Arduino_Canvas* canvas) override;
-    void handleTouch(int x, int y) override;
+    void draw() override;
+    bool handleTouch(int16_t tx, int16_t ty) override;
 
 private:
-    UIManager* ui;
-    std::vector<UIButton> buttons;
+    void hideAllGroups();
+    void showGroup(int groupId);
+
+    std::vector<UIElement*> elements;
+    std::vector<UIButton*> buttons;
+    std::map<int, std::vector<UIElement*>> groups;
 };

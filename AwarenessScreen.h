@@ -1,16 +1,20 @@
 #pragma once
 #include "UIScreen.h"
-#include "UIButton.h"
-#include "UIManager.h"
+#include <map>
 
 class AwarenessScreen : public UIScreen {
 public:
-    AwarenessScreen(UIManager* uiManager);
     void begin() override;
-    void draw(Arduino_Canvas* canvas) override;
-    void handleTouch(int x, int y) override;
+    void draw() override;
+    bool handleTouch(int16_t tx, int16_t ty) override;
 
 private:
-    UIManager* ui;
-    std::vector<UIButton> buttons;
+    std::vector<UIElement*> elements;
+    std::vector<UIButton*> buttons;
+
+    void showGroup(int groupId);
+    void hideAllGroups();
+
+
+    std::map<GroupID, std::vector<UIElement*>> groups;
 };

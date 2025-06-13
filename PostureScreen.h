@@ -1,16 +1,20 @@
 #pragma once
+
 #include "UIScreen.h"
-#include "UIButton.h"
-#include "UIManager.h"
+#include <vector>
+#include <map>
 
 class PostureScreen : public UIScreen {
 public:
-    PostureScreen(UIManager* uiManager);
     void begin() override;
-    void draw(Arduino_Canvas* canvas) override;
-    void handleTouch(int x, int y) override;
+    void draw() override;
+    bool handleTouch(int16_t tx, int16_t ty) override;
+
+    void hideAllGroups();
+    void showGroup(int groupId);
 
 private:
-    UIManager* ui;
-    std::vector<UIButton> buttons;
+    std::vector<UIElement*> elements;
+    std::vector<UIButton*> buttons;
+    std::map<int, std::vector<UIElement*>> groups;
 };

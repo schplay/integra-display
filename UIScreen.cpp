@@ -2,31 +2,26 @@
 #include <math.h>
 
 void UIScreen::handleTouch(int x, int y) {
-    for (auto& group : groups) {
-        if (!group.visible) continue;
-        for (auto& button : group.buttons) {
-            if (button.checkTouch(x, y)) {
-                button.executeCallback();
-            }
-        }
-    }
     for (auto& button : buttons) {
-        if (button.checkTouch(x, y)) {
-            button.executeCallback();
+        if (button->contains(x, y)) {
+            button->trigger();
+            break;
         }
     }
 }
 
-void UIScreen::addButtonToGroup(int groupId, UIButton button) {
-    if (groupId >= groups.size()) {
-        groups.resize(groupId + 1, {std::vector<UIButton>(), true});
+void UIScreen::addButtonToGroup(int groupIndex, const UIButton& button) {
+    while (groups.size() <= groupIndex) {
+        groups[groupIndex] = {};  // Ensure that the group is initialized if needed
     }
-    groups[groupId].buttons.push_back(button);
+    groups[groupIndex].push_back(&button);  // Add the button to the group's element list
 }
 
-void UIScreen::setGroupVisibility(int groupId, bool visible) {
-    if (groupId < groups.size()) {
-        groups[groupId].visible = visible;
+void UIScreen::setGroupVisibility(int groupIndex, bool visible) {
+    if (groups.count(groupIndex)) {
+        for (auto* el : groups[groupIndex]) {
+            el->setVisible(visible);
+        }
     }
 }
 

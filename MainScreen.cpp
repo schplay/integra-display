@@ -1,136 +1,83 @@
 #include "MainScreen.h"
-#include <FS.h>
-#include <FFat.h>
-#include "AffirmationScreen.h"
-#include "AwarenessScreen.h"
-#include "BreathingScreen.h"
-#include "MoreScreen.h"
-#include "PostureScreen.h"
-#include "PowerMassageScreen.h"
-#include "StrengthenIntuitionScreen.h"
+#include "UIManager.h"
 
-// #include "assets/main_background.h"
-// #include "assets/icon_awareness.h"
-// #include "assets/icon_massage.h"
-// #include "assets/icon_posture.h"
-// #include "assets/icon_affirmation.h"
-// #include "assets/icon_breathing.h"
-// #include "assets/icon_more.h"
-// #include "assets/icon_intuition.h"
+#include "assets/awareness_button.h"
+#include "assets/awareness_button_highlight.h"
+#include "assets/posture_button.h"
+#include "assets/posture_button_highlight.h"
+#include "assets/power_massage_button.h"
+#include "assets/power_massage_button_highlight.h"
+#include "assets/affirmation_button.h"
+#include "assets/affirmation_button_highlight.h"
+#include "assets/breathing_techniques_button.h"
+#include "assets/breathing_techniques_button_highlight.h"
+#include "assets/more_button.h"
+#include "assets/more_button_highlight.h"
 
-// Constructor
-MainScreen::MainScreen(UIManager* uiManager) : ui(uiManager) {}
 
 void MainScreen::begin() {
-    createButtons();
+    elements.clear();
+    buttons.clear();
+
+    auto* btn_Awareness = new UIButton(20, 220, 80, 80,
+        awareness_button, awareness_button_highlight);
+    btn_Awareness->setCallback([this]() {
+        manager.changeScreen(ScreenID::Awareness);
+    });
+    elements.push_back(btn_Awareness);
+    buttons.push_back(btn_Awareness);
+
+    auto* btn_Posture = new UIButton(120, 220, 80, 80,
+        posture_button, posture_button_highlight);
+    btn_Posture->setCallback([this]() {
+        manager.changeScreen(ScreenID::Posture);
+    });
+    elements.push_back(btn_Posture);
+    buttons.push_back(btn_Posture);
+
+    auto* btn_Affirmation = new UIButton(220, 220, 80, 80,
+        affirmation_button, affirmation_button_highlight);
+    btn_Affirmation->setCallback([this]() {
+        manager.changeScreen(ScreenID::Affirmation);
+    });
+    elements.push_back(btn_Affirmation);
+    buttons.push_back(btn_Affirmation);
+
+    auto* btn_Breathing = new UIButton(320, 220, 80, 80,
+        breathing_button, breathing_button_highlight);
+    btn_Breathing->setCallback([this]() {
+        manager.changeScreen(ScreenID::Breathing);
+    });
+    elements.push_back(btn_Breathing);
+    buttons.push_back(btn_Breathing);
+
+    auto* btn_More = new UIButton(420, 220, 80, 80,
+        more_button, more_button_highlight);
+    btn_More->setCallback([this]() {
+        manager.changeScreen(ScreenID::More);
+    });
+    elements.push_back(btn_More);
+    buttons.push_back(btn_More);
+
+    auto* btn_Massage = new UIButton(520, 220, 80, 80,
+        power_massage_button, power_massage_button_highlight);
+    btn_Massage->setCallback([this]() {
+        manager.changeScreen(ScreenID::PowerMassage);
+    });
+    elements.push_back(btn_Massage);
+    buttons.push_back(btn_Massage);
 }
 
-// Create buttons based on the positions and sizes of the icons
-void MainScreen::createButtons() {
-    // Awareness button
-    buttons.push_back(UIButton(30, 100, 64, 64, "Awareness", []() {
-      // Placeholder — actual behavior can go here or be routed through UIManager
-    }));
-    // Massage button
-    buttons.push_back(UIButton(120, 100, 64, 64, "Massage", []() {
-      // Placeholder — actual behavior can go here or be routed through UIManager
-    }));
-    // Posture button
-    buttons.push_back(UIButton(210, 100, 64, 64, "Posture", []() {
-      // Placeholder — actual behavior can go here or be routed through UIManager
-    }));
-    // Affirmation button
-    buttons.push_back(UIButton(300, 100, 64, 64, "Affirmation", []() {
-      // Placeholder — actual behavior can go here or be routed through UIManager
-    }));
-    // Breathing button
-    buttons.push_back(UIButton(390, 100, 64, 64, "Breathing", []() {
-      // Placeholder — actual behavior can go here or be routed through UIManager
-    }));
-    // More button
-    buttons.push_back(UIButton(150, 200, 64, 64, "More", []() {
-      // Placeholder — actual behavior can go here or be routed through UIManager
-    }));
-    // Intuition button
-    buttons.push_back(UIButton(260, 200, 64, 64, "Intuition", []() {
-      // Placeholder — actual behavior can go here or be routed through UIManager
-    }));
+void MainScreen::draw() {
+    auto* canvas = manager.getCanvas();
+    canvas->fillScreen(0x0000); // Black background or your custom bg color
+    for (auto* el : elements) el->draw(canvas);
+    canvas->flush();
 }
 
-void MainScreen::draw(Arduino_Canvas* canvas) {
-    canvas->fillScreen(BLACK);
-
-    // Draw background
-    // canvas->draw16bitRGBBitmap(0, 0, main_background, 480, 480);
-    File file = FFat.open("/assets/background.rgb565", "r");
-    if (!file) {
-        Serial.println("Failed to open background.rgb565");
-        return;
+bool MainScreen::handleTouch(int16_t tx, int16_t ty) {
+    for (auto* btn : buttons) {
+        if (btn->handleTouch(tx, ty)) return true;
     }
-
-    const int width = 480;
-    const int height = 480;
-    uint8_t buffer[480 * 2]; // 480 pixels * 2 bytes (1 row)
-
-    for (int y = 0; y < height; y++) {
-        file.read(buffer, sizeof(buffer));
-        canvas->draw16bitRGBBitmap(0, y, (uint16_t*)buffer, width, 1);
-    }
-
-    file.close();
-
-    // Draw icons (buttons)
-    // canvas->drawRGBBitmap(30, 100, icon_awareness, 64, 64);
-    // canvas->drawRGBBitmap(120, 100, icon_massage, 64, 64);
-    // canvas->drawRGBBitmap(210, 100, icon_posture, 64, 64);
-    // canvas->drawRGBBitmap(300, 100, icon_affirmation, 64, 64);
-    // canvas->drawRGBBitmap(390, 100, icon_breathing, 64, 64);
-    // canvas->drawRGBBitmap(150, 200, icon_more, 64, 64);
-    // canvas->drawRGBBitmap(260, 200, icon_intuition, 64, 64);
-
-    // Draw labels for buttons
-    canvas->setTextColor(WHITE);
-    canvas->setTextSize(1);
-    canvas->setCursor(30, 170); canvas->print("Awareness");
-    canvas->setCursor(120, 170); canvas->print("Massage");
-    canvas->setCursor(210, 170); canvas->print("Posture");
-    canvas->setCursor(300, 170); canvas->print("Affirmation");
-    canvas->setCursor(390, 170); canvas->print("Breathing");
-    canvas->setCursor(150, 270); canvas->print("More");
-    canvas->setCursor(260, 270); canvas->print("Intuition");
-
-    // Optionally, draw the buttons themselves to indicate press area
-    // for (auto& button : buttons) {
-    //     button.draw(gfx);
-    // }
+    return false;
 }
-
-void MainScreen::handleTouch(int x, int y) {
-    for (auto& button : buttons) {
-        if (button.handleTouch(x, y)) {
-            // Handle the button press and navigate to the appropriate screen based on button label
-            if (button.getLabel() == "Awareness") {
-                ui->setScreen(new AwarenessScreen(ui));  // Transition to Awareness screen
-            }
-            else if (button.getLabel() == "Power Massage") {
-                ui->setScreen(new PowerMassageScreen(ui));  // Transition to Power Massage screen
-            }
-            else if (button.getLabel() == "Posture") {
-                ui->setScreen(new PostureScreen(ui));  // Transition to Posture screen
-            }
-            else if (button.getLabel() == "Affirmation of Intention") {
-                ui->setScreen(new AffirmationScreen(ui));  // Transition to Affirmation screen
-            }
-            else if (button.getLabel() == "Breathing Techniques") {
-                ui->setScreen(new BreathingScreen(ui));  // Transition to Breathing Techniques screen
-            }
-            else if (button.getLabel() == "More") {
-                ui->setScreen(new MoreScreen(ui));  // Transition to More screen
-            }
-            else if (button.getLabel() == "Strengthen Intuition") {
-                ui->setScreen(new StrengthenIntuitionScreen(ui));  // Transition to Strengthen Intuition screen
-            }
-        }
-    }
-}
-

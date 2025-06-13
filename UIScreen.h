@@ -1,28 +1,34 @@
-#ifndef UISCREEN_H
-#define UISCREEN_H
+#ifndef UI_SCREEN_H
+#define UI_SCREEN_H
 
-#include <TFT_eSPI.h>
+#include <Arduino_GFX.h>
 #include <vector>
+#include <map>
 #include "UIButton.h"
+#include "UIElement.h"
 
-struct ElementGroup {
-    std::vector<UIButton> buttons;
-    bool visible;
-    // Add other elements (e.g., text, images) as needed
-};
+class UIManager;
 
 class UIScreen {
 public:
-    virtual void draw(TFT_eSPI& tft) = 0;
-    virtual void handleTouch(int x, int y);
-    virtual void update();
-    void addButtonToGroup(int groupId, UIButton button);
-    void setGroupVisibility(int groupId, bool visible);
-    void rotateAndBlit(TFT_eSPI& tft, int x, int y, int width, int height, uint16_t* buffer);
+    UIScreen(UIManager* uiManager) : uiManager(uiManager) {}
+    virtual ~UIScreen() = default;
+
+    virtual void begin() {}
+    virtual void draw(Arduino_Canvas* canvas) = 0;
+    virtual void update() {}
+    virtual bool handleTouch(int x, int y);
+    static void rotateAndBlit(Arduino_Canvas* canvas, Arduino_RGB_Display* gfx, float degrees);
+
+    void hideAllGroups();
+    void showGroup(int groupId);
 
 protected:
-    std::vector<UIButton> buttons;
-    std::vector<ElementGroup> groups;
+    UIManager* uiManager;
+
+    std::vector<UIElement*> elements;
+    std::vector<UIButton*> buttons;
+    std::map<int, std::vector<UIElement*>> groups;
 };
 
 #endif
