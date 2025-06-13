@@ -1,95 +1,56 @@
-// BreathingScreen.cpp
 #include "BreathingScreen.h"
 #include "UIManager.h"
-#include "UIButton.h"
-#include "UILabel.h"
-#include "assets/back_button.h"
 
-// Group IDs
-#define GROUP_BREATHING_MAIN       0
-#define GROUP_BREATHING_INSTRUCTION_1 1
-#define GROUP_BREATHING_INSTRUCTION_2 2
-#define GROUP_BREATHING_COMPLETE   3
+// Restore exact asset includes
+#include <assets/background.h>
+#include <assets/back_button.h>
+// #include <assets/start_button.h>
+
+BreathingScreen::BreathingScreen(UIManager* manager) : UIScreen(manager), currentGroup(static_cast<int>(GroupID::BREATHING_MAIN)) {}
 
 void BreathingScreen::begin() {
-    elements.clear();
-    buttons.clear();
-    groups.clear();
+    auto* title = new UILabel(40, 40, 400, 40, "Breathing");
+    auto* desc = new UILabel(40, 90, 600, 100, "Prepare for a breathing exercise.\n\nPress start to begin.");
+    auto* back = new UIButton(600, 360, 48, 48, "", back_button, back_button, [this]() { manager->navigateBack(); });
+    // auto* start = new UIButton(40, 360, 120, 48, "START", start_button, start_button_h, [this]() { showGroup(static_cast<int>(GroupID::BREATHING_EXERCISE)); });
+    // groups[static_cast<int>(GroupID::BREATHING_MAIN)] = std::vector<UIElement*>{title, desc, back, start};
+    groups[static_cast<int>(GroupID::BREATHING_MAIN)] = std::vector<UIElement*>{title, desc, back};
 
-    auto* back = new UIButton(20, 20, 60, 60, back_button);
-    back->setCallback([this]() {
-        manager.changeScreen(ScreenID::Main);
-    });
-    elements.push_back(back);
-    buttons.push_back(back);
+    auto* exerciseTitle = new UILabel(40, 40, 400, 40, "Breathing Exercise");
+    auto* exerciseText = new UILabel(40, 90, 600, 100, "Inhale for 4 seconds, hold for 4, exhale for 4.\n\nRepeat for 1 minute.");
+    // auto* exerciseNext = new UIButton(40, 360, 120, 48, "NEXT", start_button, start_button_h, [this]() { showGroup(static_cast<int>(GroupID::BREATHING_COMPLETE)); });
+    groups[static_cast<int>(GroupID::BREATHING_EXERCISE)] = std::vector<UIElement*>{exerciseTitle, exerciseText, exerciseNext};
 
-    // Group: BREATHING_MAIN (Figma frame "Breathing Techniques")
-    auto* title = new UILabel(40, 40, 400, 40, "Breathing Techniques");
-    title->setFont("Roboto-Bold", 28);
-    title->setTextColor(0xFFFF);
-
-    auto* subtitle = new UILabel(40, 90, 400, 30, "Focus on your breath");
-    subtitle->setFont("Roboto-Regular", 22);
-    subtitle->setTextColor(0xCCCC);
-
-    groups[GROUP_BREATHING_MAIN] = { title, subtitle };
-    elements.push_back(title);
-    elements.push_back(subtitle);
-
-    // Group: BREATHING_INSTRUCTION_1 (Figma frame "Breathing Techniques - 1")
-    auto* instr1 = new UILabel(30, 50, 420, 200,
-        "Inhale deeply through your nose.\n\nHold for a few seconds.");
-    instr1->setFont("Roboto-Regular", 20);
-    instr1->setTextColor(0xFFFF);
-
-    groups[GROUP_BREATHING_INSTRUCTION_1] = { instr1 };
-    elements.push_back(instr1);
-
-    // Group: BREATHING_INSTRUCTION_2 (Figma frame "Breathing Techniques - 2")
-    auto* instr2 = new UILabel(30, 50, 420, 200,
-        "Exhale slowly through your mouth.\n\nRepeat for 5 minutes.");
-    instr2->setFont("Roboto-Regular", 20);
-    instr2->setTextColor(0xFFFF);
-
-    groups[GROUP_BREATHING_INSTRUCTION_2] = { instr2 };
-    elements.push_back(instr2);
-
-    // Group: BREATHING_COMPLETE (Figma frame "Breathing Techniques - Complete")
-    auto* done = new UILabel(30, 50, 420, 200,
-        "You’ve completed the Breathing Techniques.\n\nFeel more centered.");
-    done->setFont("Roboto-Regular", 20);
-    done->setTextColor(0xFFFF);
-
-    groups[GROUP_BREATHING_COMPLETE] = { done };
-    elements.push_back(done);
-
-    hideAllGroups();
-    showGroup(GROUP_BREATHING_MAIN);
+    auto* completeTitle = new UILabel(40, 40, 400, 40, "Complete");
+    auto* completeText = new UILabel(40, 90, 600, 100, "Well done!\n\nReturn when ready.");
+    // auto* finish = new UIButton(40, 360, 120, 48, "FINISH", start_button, start_button_h, [this]() { manager->navigateBack(); });
+    groups[static_cast<int>(GroupID::BREATHING_COMPLETE)] = std::vector<UIElement*>{completeTitle, completeText, finish};
 }
 
-void BreathingScreen::draw() {
-    auto* canvas = manager.getCanvas();
-    canvas->fillScreen(0x0000);
-    for (auto* el : elements) el->draw(canvas);
-    canvas->flush();
+void BreathingScreen::draw(Arduino_Canvas* canvas) {
+    canvas->draw16bitRGBBitmap(0, 0, const_cast<uint16_t*>(background), backgroundWidth, backgroundHeight);
+    for (auto* el : groups[currentGroup]) {
+        el->draw(canvas);
+    }
 }
 
-bool BreathingScreen::handleTouch(int16_t tx, int16_t ty) {
-    for (auto* btn : buttons) {
-        if (btn->handleTouch(tx, ty)) return true;
+bool BreathingScreen::handleTouch(int16_t x, int16_t y) {
+    for (auto* el : groups[currentGroup]) {
+        if (el->handleTouch(x, y)) {
+            return true;
+        }
     }
     return false;
 }
 
-void BreathingScreen::hideAllGroups() {
-    for (auto& [id, groupElems] : groups) {
-        for (auto* el : groupElems) el->setVisible(false);
-    }
+void BreathingScreen::showGroup(int groupId) {
+    currentGroup = groupId;
 }
 
-void BreathingScreen::showGroup(int groupId) {
-    hideAllGroups();
-    if (groups.count(groupId)) {
-        for (auto* el : groups[groupId]) el->setVisible(true);
+BreathingScreen::~BreathingScreen() {
+    for (auto& group : groups) {
+        for (auto* el : group.second) {
+            delete el;
+        }
     }
 }

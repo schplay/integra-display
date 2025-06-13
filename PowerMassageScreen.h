@@ -1,20 +1,23 @@
-#pragma once
+#ifndef PowerMassageScreen_h
+#define PowerMassageScreen_h
 
 #include "UIScreen.h"
+#include "UILabel.h"
+#include "UIButton.h"
+#include "GroupID.h"
 #include <vector>
 #include <map>
 
 class PowerMassageScreen : public UIScreen {
 public:
+    PowerMassageScreen(UIManager* manager);
+    ~PowerMassageScreen() override;
     void begin() override;
-    void draw() override;
-    bool handleTouch(int16_t tx, int16_t ty) override;
-
-    void hideAllGroups();
-    void showGroup(int groupId);
-
+    void draw(Arduino_Canvas* canvas) override;
+    bool handleTouch(int16_t x, int16_t y) override;
 private:
-    std::vector<UIElement*> elements;
-    std::vector<UIButton*> buttons;
     std::map<int, std::vector<UIElement*>> groups;
+    int currentGroup;
 };
+
+#endif

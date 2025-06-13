@@ -1,20 +1,30 @@
-#pragma once
+#ifndef AwarenessScreen_h
+#define AwarenessScreen_h
+
 #include "UIScreen.h"
+#include "UILabel.h"
+#include "UIButton.h"
+#include "GroupID.h"
+#include <vector>
 #include <map>
 
 class AwarenessScreen : public UIScreen {
 public:
+    AwarenessScreen(UIManager* manager);
+    ~AwarenessScreen() override;
     void begin() override;
-    void draw() override;
-    bool handleTouch(int16_t tx, int16_t ty) override;
-
+    void draw(Arduino_Canvas* canvas) override;
+    bool handleTouch(int16_t x, int16_t y) override;
 private:
-    std::vector<UIElement*> elements;
-    std::vector<UIButton*> buttons;
-
-    void showGroup(int groupId);
-    void hideAllGroups();
-
-
-    std::map<GroupID, std::vector<UIElement*>> groups;
+    std::map<int, std::vector<UIElement*>> groups;
+    int currentGroup;
+    bool isRecording;
+    unsigned long recordingStartTime;
+    unsigned long recordingDuration;
+    float recordingProgress;
+    void startRecording();
+    void stopRecording();
+    void updateTimer();
 };
+
+#endif

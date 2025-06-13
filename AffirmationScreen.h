@@ -1,24 +1,23 @@
-#ifndef AFFIRMATIONSCREEN_H
-#define AFFIRMATIONSCREEN_H
+#ifndef AffirmationScreen_h
+#define AffirmationScreen_h
 
 #include "UIScreen.h"
-#include "UIManager.h"
+#include "UILabel.h"
+#include "UIButton.h"
+#include "GroupID.h"
 #include <vector>
+#include <map>
 
 class AffirmationScreen : public UIScreen {
 public:
-    AffirmationScreen(UIManager& manager) : UIScreen(manager) {}
+    AffirmationScreen(UIManager* manager);
+    ~AffirmationScreen() override;
     void begin() override;
-    void draw() override;
-    bool handleTouch(int16_t tx, int16_t ty) override;
-    
+    void draw(Arduino_Canvas* canvas) override;
+    bool handleTouch(int16_t x, int16_t y) override;
 private:
-    void hideAllGroups();
-    void showGroup(int groupId);
-
-    std::vector<UIElement*> elements;
-    std::vector<UIButton*> buttons;
     std::map<int, std::vector<UIElement*>> groups;
+    int currentGroup;
 };
 
-#endif // AFFIRMATIONSCREEN_H
+#endif

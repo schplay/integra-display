@@ -1,55 +1,48 @@
 #include "UIManager.h"
-extern float screenRotation;
+#include "MainScreen.h"
+#include "AwarenessScreen.h"
+#include "PostureScreen.h"
+#include "AffirmationScreen.h"
+#include "BreathingScreen.h"
+#include "MoreScreen.h"
+#include "PowerMassageScreen.h"
+#include "StrengthenIntuitionScreen.h"
 
-UIManager::UIManager(Arduino_RGB_Display* gfx) : gfx(gfx), currentScreen(nullptr) {}
+UIManager::UIManager(Arduino_RGB_Display* gfx) : currentScreen(nullptr), gfx(gfx), canvas(nullptr) {}
 
-void UIManager::drawWithRotation(Arduino_Canvas* canvas, std::function<void()> drawCallback) {
-    // Rotate the canvas content before drawing
-    canvas->fillScreen(WHITE);  // Optionally clear the screen
-    drawCallback();
-    UIScreen::rotateAndBlit(canvas, gfx, screenRotation);  // Apply rotation based on global variable
+UIManager::~UIManager() {
+    delete currentScreen;
+    delete canvas;
 }
 
-void UIManager::begin() {
-    // Initialize screen or other setup code here if needed
+void UIManager::drawWithRotation(Arduino_Canvas* canvas, std::function<void()> drawCallback) {
+    drawCallback();
+    UIScreen::rotateAndBlit(canvas, gfx, 0); // Adjust degrees as needed
 }
 
 void UIManager::setScreen(UIScreen* screen) {
+    delete currentScreen;
     currentScreen = screen;
-    currentScreen->begin();  // Call begin() of the new screen
+    if (currentScreen) currentScreen->begin();
 }
 
-void UIManager::handleTouch(int x, int y) {
-    if (currentScreen) {
-        currentScreen->handleTouch(x, y);  // Pass touch input to current screen
-    }
-}
-
-void UIManager::update() {
-    if (touchController && touchController->touched()) {
-        CST_TS_Point p = touchController->getPoint(0);
-        touch(p.x, p.y);
-    }
-}
-
-void UIManager::touch(int x, int y) {
-    if (currentScreen) {
-        currentScreen->handleTouch(x, y);  // Handle touch input for the current screen
+void UIManager::changeScreen(ScreenID id) {
+    switch (id) {
+        case ScreenID::Main: setScreen(new MainScreen(this)); break;
+        case ScreenID::Awareness: setScreen(new AwarenessScreen(this)); break;
+        case ScreenID::Posture: setScreen(new PostureScreen(this)); break;
+        case ScreenID::Affirmation: setScreen(new AffirmationScreen(this)); break;
+        case ScreenID::Breathing: setScreen(new BreathingScreen(this)); break;
+        case ScreenID::More: setScreen(new MoreScreen(this)); break;
+        case ScreenID::PowerMassage: setScreen(new PowerMassageScreen(this)); break;
+        case ScreenID::StrengthenIntuition: setScreen(new StrengthenIntuitionScreen(this)); break;
     }
 }
 
 void UIManager::draw(Arduino_Canvas* canvas) {
-    if (currentScreen) {
-        drawWithRotation(canvas, [this, canvas] {
-            // Delegate to the current screen's draw function
-            currentScreen->draw(canvas);
-        });
-    }
+    if (currentScreen) currentScreen->draw(canvas);
 }
 
-void UIManager::setTouchController(Adafruit_CST8XX* touch) {
-    touchController = touch;
-    if (!touchController) {
-        Serial.println("Warning: setTouchController called with nullptr");
-    }
+bool UIManager::handleTouch(int16_t x, int16_t y) {
+    return currentScreen && currentScreen->handleTouch(x, y);
 }

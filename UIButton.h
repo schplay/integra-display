@@ -1,21 +1,23 @@
-#pragma once
+#ifndef UIBUTTON_H
+#define UIBUTTON_H
 
-#include <Arduino.h>
-#include <Arduino_GFX.h>
-#include <functional>
 #include "UIElement.h"
+#include <functional>
 
 class UIButton : public UIElement {
 public:
-    UIButton(int16_t x, int16_t y, int16_t w, int16_t h,
-             const uint16_t* image, const uint16_t* pressedImage = nullptr);
-
+    UIButton(int16_t x, int16_t y, int16_t w, int16_t h, const char* label, uint16_t* normal, uint16_t* pressed, std::function<void()> onClick)
+        : UIElement(x, y, w, h), label(label), normal(normal), pressed(pressed), onClick(onClick), isPressed(false) {}
+    
     void draw(Arduino_Canvas* canvas) override;
-    bool handleTouch(int16_t tx, int16_t ty) override;
-    void setCallback(std::function<void()> cb);
+    void release();
 
 private:
-    const uint16_t* image;
-    const uint16_t* pressedImage;
-    std::function<void()> callback;
+    const char* label;
+    uint16_t* normal;
+    uint16_t* pressed;
+    std::function<void()> onClick;
+    bool isPressed;
 };
+
+#endif

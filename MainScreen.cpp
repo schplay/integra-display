@@ -1,83 +1,56 @@
 #include "MainScreen.h"
 #include "UIManager.h"
+#include <assets/background.h>
+#include <assets/absolute_freedom.h>
+#include <assets/battery.h>
+#include <assets/logo.h>
+#include <assets/awareness_button.h>
+#include <assets/awareness_button_highlight.h>
+#include <assets/posture_button.h>
+#include <assets/posture_button_highlight.h>
+#include <assets/affirmation_button.h>
+#include <assets/affirmation_button_highlight.h>
+#include <assets/more_button.h>
+#include <assets/more_button_highlight.h>
+#include <assets/power_massage_button.h>
+#include <assets/power_massage_button_highlight.h>
+#include <assets/breathing_techniques_button.h>
+#include <assets/breathing_techniques_button_highlight.h>
 
-#include "assets/awareness_button.h"
-#include "assets/awareness_button_highlight.h"
-#include "assets/posture_button.h"
-#include "assets/posture_button_highlight.h"
-#include "assets/power_massage_button.h"
-#include "assets/power_massage_button_highlight.h"
-#include "assets/affirmation_button.h"
-#include "assets/affirmation_button_highlight.h"
-#include "assets/breathing_techniques_button.h"
-#include "assets/breathing_techniques_button_highlight.h"
-#include "assets/more_button.h"
-#include "assets/more_button_highlight.h"
-
+MainScreen::MainScreen(UIManager* manager) : UIScreen(manager) {}
 
 void MainScreen::begin() {
-    elements.clear();
-    buttons.clear();
-
-    auto* btn_Awareness = new UIButton(20, 220, 80, 80,
-        awareness_button, awareness_button_highlight);
-    btn_Awareness->setCallback([this]() {
-        manager.changeScreen(ScreenID::Awareness);
-    });
-    elements.push_back(btn_Awareness);
-    buttons.push_back(btn_Awareness);
-
-    auto* btn_Posture = new UIButton(120, 220, 80, 80,
-        posture_button, posture_button_highlight);
-    btn_Posture->setCallback([this]() {
-        manager.changeScreen(ScreenID::Posture);
-    });
-    elements.push_back(btn_Posture);
-    buttons.push_back(btn_Posture);
-
-    auto* btn_Affirmation = new UIButton(220, 220, 80, 80,
-        affirmation_button, affirmation_button_highlight);
-    btn_Affirmation->setCallback([this]() {
-        manager.changeScreen(ScreenID::Affirmation);
-    });
-    elements.push_back(btn_Affirmation);
-    buttons.push_back(btn_Affirmation);
-
-    auto* btn_Breathing = new UIButton(320, 220, 80, 80,
-        breathing_button, breathing_button_highlight);
-    btn_Breathing->setCallback([this]() {
-        manager.changeScreen(ScreenID::Breathing);
-    });
-    elements.push_back(btn_Breathing);
-    buttons.push_back(btn_Breathing);
-
-    auto* btn_More = new UIButton(420, 220, 80, 80,
-        more_button, more_button_highlight);
-    btn_More->setCallback([this]() {
-        manager.changeScreen(ScreenID::More);
-    });
-    elements.push_back(btn_More);
-    buttons.push_back(btn_More);
-
-    auto* btn_Massage = new UIButton(520, 220, 80, 80,
-        power_massage_button, power_massage_button_highlight);
-    btn_Massage->setCallback([this]() {
-        manager.changeScreen(ScreenID::PowerMassage);
-    });
-    elements.push_back(btn_Massage);
-    buttons.push_back(btn_Massage);
+    auto* awareness = new UIButton(40, 120, 200, 40, "Awareness", nullptr, nullptr, [this]() { manager->changeScreen(ScreenID::Awareness); });
+    auto* posture = new UIButton(40, 170, 200, 40, "Posture", nullptr, nullptr, [this]() { manager->changeScreen(ScreenID::Posture); });
+    auto* affirmation = new UIButton(40, 220, 200, 40, "Affirmation", nullptr, nullptr, [this]() { manager->changeScreen(ScreenID::Affirmation); });
+    auto* breathing = new UIButton(40, 270, 200, 40, "Breathing", nullptr, nullptr, [this]() { manager->changeScreen(ScreenID::Breathing); });
+    auto* more = new UIButton(40, 320, 200, 40, "More", nullptr, nullptr, [this]() { manager->changeScreen(ScreenID::More); });
+    auto* powerMassage = new UIButton(280, 120, 200, 40, "Power Massage", nullptr, nullptr, [this]() { manager->changeScreen(ScreenID::PowerMassage); });
+    auto* intuition = new UIButton(280, 170, 200, 40, "Strengthen Intuition", nullptr, nullptr, [this]() { manager->changeScreen(ScreenID::StrengthenIntuition); });
+    elements = {awareness, posture, affirmation, breathing, more, powerMassage, intuition};
 }
 
-void MainScreen::draw() {
-    auto* canvas = manager.getCanvas();
-    canvas->fillScreen(0x0000); // Black background or your custom bg color
-    for (auto* el : elements) el->draw(canvas);
-    canvas->flush();
+void MainScreen::draw(Arduino_Canvas* canvas) {
+    canvas->draw16bitRGBBitmap(0, 0, const_cast<uint16_t*>(background), backgroundWidth, backgroundHeight);
+    canvas->draw16bitRGBBitmap(0, 0, const_cast<uint16_t*>(absolute_freedom), absolute_freedomWidth, absolute_freedomHeight);
+    canvas->draw16bitRGBBitmap(400, 10, const_cast<uint16_t*>(battery), batteryWidth, batteryHeight);
+    canvas->draw16bitRGBBitmap(20, 20, const_cast<uint16_t*>(logo), logoWidth, logoHeight);
+    for (auto* el : elements) {
+        el->draw(canvas);
+    }
 }
 
-bool MainScreen::handleTouch(int16_t tx, int16_t ty) {
-    for (auto* btn : buttons) {
-        if (btn->handleTouch(tx, ty)) return true;
+bool MainScreen::handleTouch(int16_t x, int16_t y) {
+    for (auto* el : elements) {
+        if (el->handleTouch(x, y)) {
+            return true;
+        }
     }
     return false;
+}
+
+MainScreen::~MainScreen() {
+    for (auto* el : elements) {
+        delete el;
+    }
 }

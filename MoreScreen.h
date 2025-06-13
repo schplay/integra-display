@@ -1,20 +1,24 @@
-#pragma once
+#ifndef MoreScreen_h
+#define MoreScreen_h
 
 #include "UIScreen.h"
+#include "UILabel.h"
+#include "UIButton.h"
+#include "GroupID.h"
 #include <vector>
 #include <map>
 
-class MoreScreen : public Screen {
+class MoreScreen : public UIScreen {
 public:
+    MoreScreen(UIManager* manager);
+    ~MoreScreen() override;
     void begin() override;
-    void draw() override;
-    bool handleTouch(int16_t tx, int16_t ty) override;
-
+    void draw(Arduino_Canvas* canvas) override;
+    bool handleTouch(int16_t x, int16_t y) override;
 private:
-    void hideAllGroups();
-    void showGroup(int groupId);
-
-    std::vector<UIElement*> elements;
-    std::vector<UIButton*> buttons;
     std::map<int, std::vector<UIElement*>> groups;
+    int currentGroup;
+    void showGroup(int groupId);
 };
+
+#endif
